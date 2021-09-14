@@ -24,5 +24,5 @@ Gilberto A. Ortiz, Diego A. Alvarez, Daniel Bedoya-Ruíz (2015). *Identification
 
 Run the files:
 * `BW_exp_data.m`       Fitting a BWBW to experimental data
-* `example_bouc_wen.m`  Fitting a BWBW to simulated data
+* `example_bouc_wen.m`  Fitting a BW to simulated data
 
