@@ -57,7 +57,7 @@
 % -------------------------------------------------------------------------
 %
 %% Beginning
-close all; clear all; clc;
+close all; clear; clc;
 
 %% Set Matlab random number stream as 'Mersenne Twister' (mt19937ar)
 % s = RandStream('mt19937ar','Seed',0);
@@ -153,20 +153,19 @@ legend('Samples of the posterior PDF ~ N(mu_N,Sigma_N)', ...
        'Exact value of \mu', ...
        'ML estimate of \mu');
 
-%% TMCMC
+%%  Activate all available cores (parallel computing) within MATLAB
+% parpool;
 
-%  Enable parallel computing within MATLAB
-if matlabpool('size') == 0        % Activate all available cores
-   matlabpool open
-end;
-
-% Start TMCMC. Measure elapsed time.
+%% Start TMCMC. Measure elapsed time.
 Nj = 1000;                        % Number of samples per iteration
+burnin = 5;                       % parameter of the Metropolis-Hastings
+last_burnin = 20;                 % burn-in in the last iteration
 tic
-[theta_fT_D, log_fD, p, Theta] = tmcmc(log_p_X_mu, prior, p_murnd, Nj);
+[theta_fT_D, log_fD, p, Theta] = tmcmc(log_p_X_mu, prior, p_murnd, Nj, burnin, last_burnin);
 toc
 
-matlabpool close                  % Deactivate all cores
+%% Deactivate all cores
+% delete(gcp('nocreate'));          % Deactivate all cores
 
 %% Plot TMCMC results
 

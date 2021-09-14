@@ -1,4 +1,4 @@
-function [theta_m,log_S,p,Theta] = tmcmc(log_fD_theta,f_theta,sample_from_f_theta,N)
+function [theta_m,log_S,p,Theta] = tmcmc(log_fD_theta,f_theta,sample_from_f_theta,N,burnin,last_burnin)
 %% [theta_m,log_S,p,Theta] = tmcmc(log_fD_theta,f_theta,sample_from_f_theta,N)
 %
 % Transitional Markov Chain Monte Carlo algorithm.
@@ -11,6 +11,10 @@ function [theta_m,log_S,p,Theta] = tmcmc(log_fD_theta,f_theta,sample_from_f_thet
 %                            f_theta (handle function)
 %     - N:                   Number of samples to generate each stage. The
 %                            algorithm assumes that N0 = N1 = ... = Nm.
+%
+%                            Parameters of the Metropolis-Hastings algorithm
+%     - burnin:
+%     - last_burnin:         burn-in in the last iteration
 %
 % (*) Output data:
 %
@@ -37,25 +41,12 @@ function [theta_m,log_S,p,Theta] = tmcmc(log_fD_theta,f_theta,sample_from_f_thet
 %   Universidad Nacional de Colombia at Manizales. Civil Eng. Dept.
 % -------------------------------------------------------------------------
 %
-%% Beginning
-
-%% Number of cores (parallel programming)
-Ncores = matlabpool('size');
-if Ncores > 1
-   fprintf('TMCMC is running on %d cores.\n', Ncores);
-end;
-
 %% Plot graphics while TMCMC is running (better when number of parameters
 %  to be estimated = 2)
-plot_graphics = false;      % 'true' = plot; 'false' = do not plot
+PLOT_GRAPHICS = false;      % 'true' = plot; 'false' = do not plot
 
 %% I use this line during resampling stage
-with_replacement = true;    % DO NOT CHANGE!!!
-
-%% Define burn-in and thinning for Metropolis-Hastings algorithm
-burnin      = 5;
-last_burnin = 20;          % burn-in in the last iteration
-% lag         = 10;           % Thinning or lag period
+WITH_REPLACEMENT = true;    % DO NOT CHANGE!!!
 
 %% Constants
 % beta is a prescribed scaling factor that suppress the rejection rate and,
@@ -91,7 +82,7 @@ p = zeros(est_it,1);
 while p_j < 1
   %% Plot graphics that show the evolution of estimated parameters
   %  (sampled points).
-  if (plot_graphics)
+  if PLOT_GRAPHICS
     figure
     subplot(2,2,2);
     hist(theta_j(:,1), ceil(sqrt(N)));          % histogram
@@ -120,7 +111,7 @@ while p_j < 1
     title(sprintf(...
        'Samples of f_{%d} and contour levels of f_{%d} (red) and f_{%d} (black)', ...
        j, j, j+1));
-  end;
+  end
 
   j = j+1;                          % Increase counter
 
@@ -144,7 +135,7 @@ while p_j < 1
   %  f_jp1 = @(t) f_theta(t).*fD_theta(t).^(p_jp1);   % CHING, eq. 11
   log_f_jp1 = @(t) log(f_theta(t)) + p_jp1*log_fD_theta(t);
 
-  if (plot_graphics)
+  if PLOT_GRAPHICS
     % In the definition of f_jp1 we are including the normalization
     % constant prod(S(1:j)).
     f_jp1 = @(t) exp(log(f_theta(t)) + p_jp1*log_fD_theta(t) - ...
@@ -181,13 +172,13 @@ while p_j < 1
   % to guarantee the quality of the samples:
   if p_jp1 == 1
     burnin = last_burnin;
-  end;
+  end
 
   %% Start N different Markov chains
-  % Parallel FOR-loop (use 'matlabpool' function)
+  % Parallel FOR-loop
   parfor i = 1:N
     %% Sample one point with probability w_j_norm
-    idx = randsample(N, 1, with_replacement, w_j_norm);
+    idx = randsample(N, 1, WITH_REPLACEMENT, w_j_norm);
 
     %% Metropolis-Hastings routine (Matlab's routine)
     % smpl = mhsample(start, nsamples, 'pdf', pdf,
@@ -241,7 +232,7 @@ theta_m = theta_j;
 if j < est_it-2
   S(j+2:end) = [];
 end
-log_S      = sum(log(S(1:j)));
+log_S = sum(log(S(1:j)));
 
 %% delete unnecesary data
 if j < est_it-2

@@ -92,7 +92,7 @@ dxdt = [...
 % In case the Bouc-Model of hysteresis diverges, we set the response to Inf
 if any(any(isnan(dxdt))) || any(any(isinf(dxdt)))
  dxdt = inf(4,1);
-end;
+end
 
 end
 %% END

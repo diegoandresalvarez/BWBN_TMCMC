@@ -323,19 +323,20 @@ prior_rnd = @(NN) sample_unifrnd(boundaries, NN);
 %% The log-likelihood of X given 'theta' - Likelihood PDF
 log_f_X_theta = @(theta) log_p_X_theta(theta, data, u, w0, tt, dt, env);
 
-%% TMCMC
-%  Enable parallel computing within MATLAB
-if matlabpool('size') == 0        % Activate all available cores
-   matlabpool open
-end;
+%%  Activate all available cores (parallel computing) within MATLAB
+% parpool;
 
-% Start TMCMC
-Nj = 1000;                        % Number of samples per iteration
+%% Start TMCMC
+Nj = 1000;                       % Number of samples per iteration
+burnin = 50;                     % parameter of the Metropolis-Hastings
+last_burnin = 200;               % burn-in in the last iteration
+
 tic
-[theta_fT_D, log_fD, p, Theta] = tmcmc(log_f_X_theta, prior, prior_rnd, Nj);
+[theta_fT_D, log_fD, p, Theta] = tmcmc(log_f_X_theta, prior, prior_rnd, Nj, burnin, last_burnin);
 toc
 
-matlabpool close                  % Deactivate all cores
+%% Deactivate all cores
+% delete(gcp('nocreate'));          % Deactivate all cores
 
 %% Save results to a file
 nc = length(Theta);
