@@ -1,4 +1,6 @@
 %% Bouc-Wen-Baber-Noori (BWBN) hysteresis model
+% Given the system's parameters and a given input force, estimate the
+% displacements and total dissipated energy
 %
 % xdd + 2*xi*w0*xd + alpha*w0^2*x(1) + (1-alpha)*w0^2*z = u;
 % 
@@ -162,9 +164,8 @@ Fexact  = @(x_k,u_k) rk_discrete(BW_real,x_k,u_k,dt);
 x_0 = zeros(4,1);
 x_k = zeros(length(x_0)); % vector where I'm going to store the system response
 
-x_k(:,1) = x_0;           % Initial state
-
 %% Computing system response
+x_k(:,1) = x_0;           % Initial state
 for i = 2:N
   x_k(:,i) = Fexact(x_k(:,i-1),u(i-1));
 end
